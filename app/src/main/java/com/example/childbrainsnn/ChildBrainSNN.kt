@@ -454,6 +454,7 @@ class MotorController(private val tts: TextToSpeech?) {
             tts?.speak(
                 word, TextToSpeech.QUEUE_FLUSH, null, "child_brain_${engine.simTime}"
             )
+            Log.d("ChildBrainSNN", "TTS spoken: \"${word}\" at simTime=${engine.simTime}")
         }
         if (word.isEmpty()) lastWord = ""
     }
@@ -519,17 +520,26 @@ class SNNController(
     private val targetIntervalMs = 16L
 
     override fun run() {
+        var frameCount = 0
+        var spikeAccumulator = 0
         while (running && !Thread.currentThread().isInterrupted) {
             val frameStart = System.currentTimeMillis()
             repeat(subSteps) {
                 engine.simulateAudio()
                 engine.step(dt)
+                spikeAccumulator += engine.getSpikeCount()
             }
             motorCtrl.update(engine)
             val elapsed = System.currentTimeMillis() - frameStart
             val sleepMs = targetIntervalMs - elapsed
             if (sleepMs > 0) {
                 try { sleep(sleepMs) } catch (_: InterruptedException) { break }
+            }
+            frameCount++
+            if (frameCount >= 60) {
+                frameCount = 0
+                Log.d("ChildBrainSNN", "Spike count (last 1s): $spikeAccumulator")
+                spikeAccumulator = 0
             }
         }
     }
