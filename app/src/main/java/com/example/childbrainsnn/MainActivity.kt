@@ -1,6 +1,7 @@
 package com.example.childbrainsnn
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.util.Log
@@ -8,6 +9,9 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.MutableState
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -65,13 +69,16 @@ class MainActivity : ComponentActivity() {
     private var engine: ChildBrainSNN? = null
     private var analyzer: VisualDiffAnalyzer? = null
     private var controller: SNNController? = null
-    private var hasCameraPermission: Boolean = false
+    private var hasCameraPermission = mutableStateOf(false)
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        hasCameraPermission = permissions[Manifest.permission.CAMERA] ?: false
-        if (!hasCameraPermission) {
+        val camera = permissions[Manifest.permission.CAMERA] ?: false
+        @Suppress("UNUSED_VARIABLE")
+        val audio = permissions[Manifest.permission.RECORD_AUDIO] ?: false
+        hasCameraPermission.value = camera
+        if (!camera) {
             Toast.makeText(
                 this,
                 "Camera permission required. SNN will use simulated visual input.",
@@ -122,7 +129,14 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (hasCameraPermission) {
+        val cameraGranted = ContextCompat.checkSelfPermission(
+            this, Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+        val audioGranted = ContextCompat.checkSelfPermission(
+            this, Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+        hasCameraPermission.value = cameraGranted
+        if (cameraGranted && audioGranted) {
             analyzer?.reset()
         }
         controller?.startSimulation()
@@ -152,7 +166,7 @@ fun ChildBrainApp(
     engine: ChildBrainSNN,
     controller: SNNController,
     analyzer: VisualDiffAnalyzer,
-    hasCameraPermission: Boolean,
+    hasCameraPermission: MutableState<Boolean>,
     onStartClicked: () -> Unit
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -173,7 +187,8 @@ fun ChildBrainApp(
         Box(modifier = Modifier.fillMaxSize()) {
 
             // -- CameraX live preview (feeds visualInput into the engine) --
-            if (hasCameraPermission) {
+            val hasPerm by hasCameraPermission
+            if (hasPerm) {
                 CameraPreviewWithAnalysis(
                     lifecycleOwner = lifecycleOwner,
                     engine = engine,
