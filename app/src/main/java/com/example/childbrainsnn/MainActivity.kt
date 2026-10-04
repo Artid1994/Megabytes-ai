@@ -23,6 +23,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -106,7 +110,12 @@ class MainActivity : ComponentActivity() {
                 engine = engine!!,
                 controller = controller!!,
                 analyzer = analyzer!!,
-                hasCameraPermission = hasCameraPermission
+                hasCameraPermission = hasCameraPermission,
+                onStartClicked = {
+                    permissionLauncher.launch(
+                        arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
+                    )
+                }
             )
         }
     }
@@ -143,7 +152,8 @@ fun ChildBrainApp(
     engine: ChildBrainSNN,
     controller: SNNController,
     analyzer: VisualDiffAnalyzer,
-    hasCameraPermission: Boolean
+    hasCameraPermission: Boolean,
+    onStartClicked: () -> Unit
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -154,7 +164,10 @@ fun ChildBrainApp(
     }
 
     Surface(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(WindowInsets.statusBars.asPaddingValues())
+            .padding(WindowInsets.navigationBars.asPaddingValues()),
         color = Color(0xFF0A0A1A)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -205,7 +218,11 @@ fun ChildBrainApp(
                     .align(Alignment.BottomEnd)
                     .padding(16.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0x33FFFFFF))
+                colors = CardDefaults.cardColors(containerColor = Color(0x33FFFFFF)),
+                onClick = {
+                    onStartClicked()
+                    started = true
+                }
             ) {
                 Box(
                     modifier = Modifier
