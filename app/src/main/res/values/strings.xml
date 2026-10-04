@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Child Brain SNN</string>
+    <string name="camera_permission_rationale">The camera is needed for visual input to the spiking neural network.</string>
+    <string name="audio_permission_rationale">Audio input is declared per design spec; this engine uses simulated mic spikes.</string>
+</resources>

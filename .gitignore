@@ -1,0 +1,27 @@
+# Gradle
+.gradle/
+build/
+*/build/
+
+# Local configuration file
+local.properties
+
+# Android packages
+*.apk
+*.apks
+*.aab
+
+# Logs
+*.log
+
+# Android Studio
+captures/
+.externalNativeBuild/
+.cxx/
+*/packaged_classes/
+*/exploded-aar/
+*.class
+
+# Built application assets
+*.war
+*.ear

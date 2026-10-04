@@ -1,0 +1,26 @@
+{
+  "name": "ChildBrainSNN",
+  "target": "Android 15 (API 35)",
+  "constraints": {
+    "max_ram_mb": 2048,
+    "zero_allocation": true
+  },
+  "neuron": {
+    "model": "Leaky Integrate-and-Fire (LIF)",
+    "params": { "v_rest": 0.0, "v_threshold": 1.0, "tau_m_ms": 20.0, "tau_ref_ms": 5.0 }
+  },
+  "synapse": {
+    "model": "Exponential",
+    "learning": "STDP",
+    "params": { "tau_plus_ms": 20.0, "tau_minus_ms": 40.0, "a_plus": 0.005, "a_minus": -0.008, "w_min": 0.0, "w_max": 1.0 }
+  },
+  "network": {
+    "layers": [
+      { "name": "visual", "size": 256, "source": "CameraX", "encoding": "rate" },
+      { "name": "auditory", "size": 128, "source": "AudioRecord+FFT", "encoding": "frequency" },
+      { "name": "hidden", "size": 64, "recurrent": true },
+      { "name": "motor", "size": 32, "sink": "TTS" }
+    ]
+  },
+  "buffers": { "type": "RingBuffer<Int>", "capacity": 512, "preallocate": true }
+}
